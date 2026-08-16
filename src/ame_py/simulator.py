@@ -237,7 +237,7 @@ class AMESimulator:
             elif dtype == DType.INT16:
                 data = data % 32768
             elif dtype == DType.INT32:
-                data = data % 1000
+                data = data % 1000  # keep synthetic values small for readability
             self.memory[address] = data
 
         data = self.memory[address]
