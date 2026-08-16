@@ -320,6 +320,21 @@ class AMESimulator:
                 )
             return False
 
+        # The spec requires both source operands to share the same dtype;
+        # mixed-precision GEMM is not modeled. (The alignment check below is
+        # intentionally per-operand: each group base is validated against
+        # its own dtype's group_size, so e.g. an int32 m0 × int16 m0 pair
+        # would both be legal group starts — this check is what rules it out.)
+        if dtype1 != dtype2:
+            self.amestatus |= 1
+            if self.verbose:
+                name1 = self._DTYPE_NAMES.get(dtype1, f"0x{dtype1:08X}")
+                name2 = self._DTYPE_NAMES.get(dtype2, f"0x{dtype2:08X}")
+                print(
+                    f"  [WARN] mmulacc.2d acc{acc}, m{ms1}, m{ms2} → dtype mismatch: {name1} vs {name2}"
+                )
+            return False
+
         group_size1, group_size2 = (
             self._get_group_size(dtype1),
             self._get_group_size(dtype2),

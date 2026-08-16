@@ -143,12 +143,21 @@ class TestMmulAcc:
         assert sim.mmulacc_2d(0, 0, 1) is False
         assert sim.get_amestatus() & 1 == 1
 
-    def test_misaligned_operand_raises(self, sim):
-        sim.msettyp(3, DType.INT32)  # group_size = 4
+    def test_dtype_mismatch_rejected(self, sim):
+        # Both aligned group starts for their own dtype, but int16 × int8
+        # is mixed-precision and must be rejected.
+        sim.msettyp(0, DType.INT16)
         sim.msettyp(1, DType.INT8)
         sim.asettyp(0, DType.INT32)
+        assert sim.mmulacc_2d(0, 0, 1) is False
+        assert sim.get_amestatus() & 1 == 1
+
+    def test_misaligned_operand_raises(self, sim):
+        sim.msettyp(3, DType.INT32)  # group_size = 4
+        sim.msettyp(0, DType.INT32)
+        sim.asettyp(0, DType.INT32)
         with pytest.raises(ValueError, match="misaligned"):
-            sim.mmulacc_2d(0, 3, 1)
+            sim.mmulacc_2d(0, 3, 0)
 
     def test_saturation_clamps_result(self, sim):
         sim.msettyp(0, DType.INT8)
