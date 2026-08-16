@@ -4,6 +4,7 @@
   gitignoreSource,
   lib,
   numpy,
+  pytestCheckHook,
 }:
 let
   versionFile = builtins.readFile ./src/ame_py/__init__.py;
@@ -18,13 +19,14 @@ buildPythonPackage {
   pyproject = true;
 
   build-system = [ hatchling ];
-
   nativeBuildInputs = [ ];
-
   dependencies = [ numpy ];
 
   doCheck = true;
+  nativeCheckInputs = [ pytestCheckHook ];
+  enabledTestPaths = [ "tests" ];
   pythonImportsCheck = [ "ame_py" ];
+
   meta = {
     description = "";
     homepage = "https://github.com/yushengyangchem/ame-py";
