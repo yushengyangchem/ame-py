@@ -26,13 +26,22 @@ class AMESimulator:
         self.AME_NUM_M_REGS = 16
         self.AME_NUM_ACC_REGS = 1
 
-        # Register files: M holds matrix data, Md holds its data type
+        # Register files: M holds matrix data, Md holds its data type.
+        #
+        # HACK: unpacked register representation — every element slot is an
+        # int64 regardless of Md. Real hardware stores elements at their
+        # declared width (packed, e.g. 2x INT4 per 8-bit unit slot). Here the
+        # int64 container only mimics the hardware's wide compute path; the
+        # simulated element width is tracked per register by Md and applied
+        # only at compute boundaries (see mmulacc_2d). Do NOT narrow this
+        # container — intermediate results would wrap and break semantics.
         self.M = [
             np.zeros(self.AME_NELEM, dtype=np.int64) for _ in range(self.AME_NUM_M_REGS)
         ]
         self.Md = [0] * self.AME_NUM_M_REGS
 
         # Acc holds accumulators, Ad holds its data type
+        # HACK: same unpacked int64 representation as M (see note above).
         self.Acc = [
             np.zeros(self.AME_NELEM, dtype=np.int64)
             for _ in range(self.AME_NUM_ACC_REGS)
@@ -44,7 +53,9 @@ class AMESimulator:
         self.amenlen = self.N
         self.ameudsz = self.AME_UNIT_DATATYPE_SIZE
 
-        # Simulated memory (address -> data)
+        # HACK: memory is a Python dict (address -> numpy array), not a
+        # byte-addressable contiguous space. No real addresses, no packing,
+        # no endianness. Only the load/store *semantics* are simulated.
         self.memory: dict[int, np.ndarray] = {}
 
         # Debug
@@ -217,7 +228,9 @@ class AMESimulator:
         if md % group_size != 0:
             raise ValueError(f"M{md} not aligned to group_size={group_size}")
 
-        # Generate synthetic data when the address was never written
+        # HACK: fabricates synthetic data (1..64, clipped per dtype) when the
+        # address was never written. Real hardware would load whatever bytes
+        # are in memory; this simulator just makes up deterministic values.
         if address not in self.memory:
             data = np.arange(1, self.AME_NELEM + 1, dtype=np.int64)
             if dtype == DType.INT8:
@@ -231,6 +244,9 @@ class AMESimulator:
         data = self.memory[address]
         for i in range(min(group_size, len(data) // self.AME_NELEM)):
             start = i * self.AME_NELEM
+            # HACK: no narrowing on write-back — values are stored as-is in
+            # the int64 container. Hardware would wrap/saturate to the Md
+            # width at load time; we defer that to compute time instead.
             self.M[md + i] = data[start : start + self.AME_NELEM].copy()
 
         self.amestatus &= ~1
@@ -256,12 +272,15 @@ class AMESimulator:
             self.amestatus |= 1
             return False
 
+        # HACK: fabricates a synthetic row-major matrix if the address was
+        # never written (same caveat as mls above).
         if address not in self.memory:
             data = np.arange(1, rows * cols + 1, dtype=np.int64).reshape(rows, cols)
             self.memory[address] = data
 
         matrix = self.memory[address]
         tile = matrix[: self.N, : self.N].flatten()
+        # HACK: no narrowing on write-back (see mls above).
         self.M[md] = tile.copy()
 
         self.amestatus &= ~1
@@ -308,10 +327,17 @@ class AMESimulator:
 
         A = self.M[ms1].reshape(self.N, self.N)
         B = self.M[ms2].reshape(self.N, self.N)
+        # HACK: computes in the full int64 container width, which models the
+        # hardware's wide MAC path (e.g. INT8xINT8 -> INT32 accumulate).
+        # Real hardware never lets intermediates wrap at the storage width;
+        # neither does this simulator. FP types are treated as integers —
+        # no IEEE-754 encoding/rounding is modeled.
         C = A @ B
 
         acc_data = self.Acc[acc].reshape(self.N, self.N)
         result_flat = (acc_data + C).flatten()
+        # The ONLY narrowing point in the simulator: saturating accumulator
+        # types are clamped on write-back, mirroring hardware behavior.
         if DType.is_saturated(dtype_acc):
             for i in range(len(result_flat)):
                 result_flat[i] = self._saturate(int(result_flat[i]), dtype_acc)
@@ -347,6 +373,8 @@ class AMESimulator:
         if md % group_size != 0:
             raise ValueError(f"M{md} not aligned to group_size={group_size}")
 
+        # HACK: no narrowing on move — the int64 payload is copied verbatim
+        # even if the destination Md width is narrower than the source values.
         self.M[md] = self.Acc[acc].copy()
         self.amestatus &= ~1
 
