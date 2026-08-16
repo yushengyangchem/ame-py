@@ -107,15 +107,32 @@ class AMESimulator:
         return 0 <= reg_idx < self.AME_NUM_ACC_REGS
 
     def _saturate(self, value: int, dtype: int) -> int:
-        """Clamp a value to the range of a saturating data type."""
+        """
+        Clamp a value to the range of a saturating data type.
+
+        Args:
+            value: The value to saturate (Python int, arbitrary precision).
+            dtype: AME data type encoding (e.g., DType.INT8_SAT).
+
+        Returns:
+            The saturated value, clamped to the valid range of `dtype`.
+
+        Note:
+            This function expects `value` to be a Python int. If a NumPy fixed-width
+            type (e.g., np.int64) is passed with a value outside its range, it may
+            overflow before reaching this function.
+        """
         if not DType.is_saturated(dtype):
             return value
 
         bits = DType.size_bits(dtype)
         if DType.is_signed(dtype):
-            max_val, min_val = (1 << (bits - 1)) - 1, -(1 << (bits - 1))
+            max_val = (1 << (bits - 1)) - 1
+            min_val = -(1 << (bits - 1))
         else:
-            max_val, min_val = (1 << bits) - 1, 0
+            max_val = (1 << bits) - 1
+            min_val = 0
+
         return max(min_val, min(max_val, value))
 
     # ========== Core instructions ==========
