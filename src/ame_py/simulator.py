@@ -307,6 +307,11 @@ class AMESimulator:
             self.amestatus |= 1
             return False
 
+        # NOTE: the packed form is NOT implemented. Storage-only dtypes
+        # (bits < U, pack_factor > 1) are rejected outright here instead of
+        # being unpacked from their packed lane layout and fed into the MAC
+        # array. mls also never packs sub-unit elements into a lane, so
+        # packed compute is unmodeled end-to-end.
         if self._is_storage_only(dtype1) or self._is_storage_only(dtype2):
             self.amestatus |= 1
             if self.verbose:
