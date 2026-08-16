@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ame-py"
+dynamic = ["version"]
+description = "A Python simulator for the RISC-V Attached Matrix Extension (AME)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["numpy"]
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["risc-v", "ame", "matrix-extension", "simulator", "isa"]
+authors = [{ name = "Yusheng Yang", email = "yushengyangchem@gmail.com" }]
+maintainers = [{ name = "Yusheng Yang", email = "yushengyangchem@gmail.com" }]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
+  "Topic :: Software Development :: Embedded Systems",
+  "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.urls]
+Homepage = "https://github.com/yushengyangchem/ame-py"
+Issues = "https://github.com/yushengyangchem/ame-py/issues"
+Documentation = "https://github.com/yushengyangchem/ame-py#readme"
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.hatch.version]
+path = "src/ame_py/__init__.py"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

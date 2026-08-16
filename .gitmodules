@@ -1,0 +1,3 @@
+[submodule "thirdparty/riscv-attached-matrix-extension"]
+	path = thirdparty/riscv-attached-matrix-extension
+	url = https://github.com/riscv/riscv-attached-matrix-extension
