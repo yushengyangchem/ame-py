@@ -60,7 +60,6 @@ class AMESimulator:
 
         # Debug
         self.verbose = True
-        self.instruction_count = 0
 
         self._SUPPORTED_DTYPES = [
             DType.INT4,
@@ -85,13 +84,6 @@ class AMESimulator:
 
     # ========== Helpers ==========
 
-    def _dtype_to_numpy(self, dtype: int) -> np.dtype:
-        """Convert an AME data type to the closest NumPy dtype."""
-        size = DType.size_bytes(dtype)
-        if DType.is_signed(dtype):
-            return np.dtype(f"int{size * 8}")
-        return np.dtype(f"uint{size * 8}")
-
     def _get_group_size(self, dtype: int) -> int:
         """group_size = dtype_size_bits / U"""
         dtype_bits = DType.size_bits(dtype)
@@ -107,12 +99,6 @@ class AMESimulator:
     def _is_storage_only(self, dtype: int) -> bool:
         """Storage-only types are narrower than the unit datatype (bits < U)."""
         return DType.size_bits(dtype) < self.AME_UNIT_DATATYPE_SIZE
-
-    def _check_register_alignment(self, reg_idx: int, dtype: int) -> bool:
-        """Check that a register index is aligned to its group_size."""
-        if self._is_storage_only(dtype):
-            return True
-        return reg_idx % self._get_group_size(dtype) == 0
 
     def _check_m_reg_range(self, reg_idx: int) -> bool:
         return 0 <= reg_idx < self.AME_NUM_M_REGS
@@ -151,10 +137,6 @@ class AMESimulator:
             self.amestatus |= 1
             if self.verbose:
                 print(f"  [WARN] msettyp m{md}, 0x{dtype:08X} → UNSUPPORTED")
-            return False
-
-        if self._is_storage_only(dtype) and self._get_pack_factor(dtype) < 1:
-            self.amestatus |= 1
             return False
 
         self.Md[md] = dtype
@@ -438,7 +420,6 @@ class AMESimulator:
         print(f"ameudsz (U) = {self.ameudsz} bits")
         print(f"amenlen (N) = {self.amenlen}")
         print(f"amestatus.UN = {self.amestatus & 1}")
-        print(f"instruction count = {self.instruction_count}")
 
         print("\n--- M Registers ---")
         for i in range(min(8, self.AME_NUM_M_REGS)):

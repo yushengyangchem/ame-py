@@ -4,17 +4,16 @@ from ame_py.dtype import DType
 
 
 @pytest.mark.parametrize(
-    ("dtype", "bits", "bytes"),
+    ("dtype", "bits"),
     [
-        (DType.INT4, 4, 0),
-        (DType.UINT8, 8, 1),
-        (DType.INT16, 16, 2),
-        (DType.INT32, 32, 4),
+        (DType.INT4, 4),
+        (DType.UINT8, 8),
+        (DType.INT16, 16),
+        (DType.INT32, 32),
     ],
 )
-def test_size(dtype, bits, bytes):
+def test_size(dtype, bits):
     assert DType.size_bits(dtype) == bits
-    assert DType.size_bytes(dtype) == bytes
 
 
 @pytest.mark.parametrize(

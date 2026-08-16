@@ -21,20 +21,12 @@ class DType:
     UINT8_SAT = 0x20000008
 
     # Floating-point types (simplified)
-    FP16 = 0x40100000
-    BF16 = 0x40801000
     FP32 = 0x40800000
-    FP64 = 0x40C00000
 
     @staticmethod
     def size_bits(dtype: int) -> int:
         """Extract the width in bits of a data type (bits[7:0])."""
         return dtype & 0xFF
-
-    @staticmethod
-    def size_bytes(dtype: int) -> int:
-        """Extract the width in bytes of a data type."""
-        return (dtype & 0xFF) // 8
 
     @staticmethod
     def is_signed(dtype: int) -> bool:

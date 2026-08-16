@@ -54,7 +54,7 @@ def run_gemm_example() -> AMESimulator:
     actual = sim.M[4].reshape(8, 8)
 
     print(f"Expected (A×B):\n{expected}")
-    print(f"Actual (M2):\n{actual}")
+    print(f"Actual (M4):\n{actual}")
 
     if np.allclose(expected, actual):
         print("[OK] Results match!")
