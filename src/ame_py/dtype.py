@@ -20,8 +20,11 @@ class DType:
     INT8_SAT = 0x60000008
     UINT8_SAT = 0x20000008
 
-    # Floating-point types (simplified)
-    FP32 = 0x40800000
+    # IEEE floating-point class (spec datatype table): bit 8 = FP,
+    # bits 30:26 = exponent width, bit 21 = Inf, bit 20 = denormals,
+    # bits 7:0 = size in bits, rounding = RNE (bits 25:22 = 0).
+    FP16 = 0x14300110
+    FP32 = 0x20300120
 
     @staticmethod
     def size_bits(dtype: int) -> int:
