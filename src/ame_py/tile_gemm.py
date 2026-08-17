@@ -110,10 +110,15 @@ class TileGEMM:
 
     def mmov_m_a(self, acc: np.ndarray) -> np.ndarray:
         """mmov.m.a md, acc0 - move an accumulator square to an FP32 M group."""
+        # HACK: no data is actually moved; NumPy has no separate register
+        # storage, so both sides are the same ndarray and this is only a
+        # value-preserving copy that marks the instruction boundary.
+        # dtype-mismatch (amestatus.UN) is simulator.py's job, not modeled here.
         return acc.astype(np.float32)
 
     def mmov_a_m(self, m_sq: np.ndarray) -> np.ndarray:
         """mmov.a.m acc0, ms - move an FP32 M square into the accumulator."""
+        # HACK: same as mmov_m_a - a copy, not a real M-register transfer.
         return m_sq.astype(np.float32)
 
     # ========== Kernels ==========
