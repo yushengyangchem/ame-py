@@ -62,8 +62,7 @@ class TileGEMM:
 
         N column segments; element (i, j) is element i of segment j, so
         tile[i, j] = buf[base + j*s + i].  With stride 0 every segment reads
-        the same N elements and the vector is broadcast down the columns,
-        which is the spec-legitimate form of the C kernel's `mlbe32 x, zero`.
+        the same N elements and the vector is broadcast down the columns.
         """
         s = self._stride_elems(stride_bytes)
         tile = np.empty((self.N, self.N), dtype=np.float32)
