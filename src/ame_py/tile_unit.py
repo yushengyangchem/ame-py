@@ -34,7 +34,7 @@ import numpy as np
 ELEM_BYTES = 4  # sizeof(fp32): the spec strides are in bytes
 
 
-class TileGEMM:
+class TileUnit:
     """An N x N tile unit programmed with spec AME instructions only."""
 
     def __init__(self, n: int = 8):
@@ -242,7 +242,7 @@ class TileGEMM:
 
 def _demo() -> None:
     rng = np.random.default_rng(0)
-    tu = TileGEMM()  # N = amenlen = 8
+    tu = TileUnit()  # N = amenlen = 8
 
     print("=" * 62)
     print("gemv: W @ x via mls.st / mls.tst(stride 0) / mconv / mmulacc")

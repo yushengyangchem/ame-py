@@ -2,14 +2,14 @@ import numpy as np
 import pytest
 
 from ame_py.dtype import DType
-from ame_py.tile_gemm import ELEM_BYTES, TileGEMM
+from ame_py.tile_unit import ELEM_BYTES, TileUnit
 
 N = 8
 
 
 @pytest.fixture
 def tu():
-    return TileGEMM(n=N)
+    return TileUnit(n=N)
 
 
 def _fold_ref(acc, a16, b16):
@@ -22,7 +22,7 @@ def _fold_ref(acc, a16, b16):
 
 
 def _gemm_struct_ref(tu, A, B, C=None):
-    """Same numeric path as TileGEMM.gemm, written independently."""
+    """Same numeric path as TileUnit.gemm, written independently."""
     A = A.astype(np.float32)
     B = B.astype(np.float32)
     M, K = A.shape
