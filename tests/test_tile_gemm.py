@@ -237,7 +237,7 @@ class TestGemm:
             tu.gemm(A, B)
 
 
-class TestMatmul:
+class TestGemv:
     SHAPES = [(16, 16), (8, 8), (24, 40), (20, 13), (33, 41), (5, 7), (3, 20)]
 
     def test_matches_fp64_within_fp16_tolerance(self, tu):
@@ -246,7 +246,7 @@ class TestMatmul:
             W = rng.standard_normal((d, n)).astype(np.float32)
             x = rng.standard_normal(n).astype(np.float32)
             out = np.zeros(d, dtype=np.float32)
-            tu.matmul(out, x, W.reshape(-1), n, d)
+            tu.gemv(out, x, W.reshape(-1), n, d)
             ref = W.astype(np.float64) @ x.astype(np.float64)
             tol = 2 * 2.0**-11 * np.sqrt(n) * (1 + np.abs(ref).max())
             assert np.max(np.abs(out - ref)) < tol
@@ -257,7 +257,7 @@ class TestMatmul:
         W = rng.integers(0, 16, size=(d, n)).astype(np.float32)
         x = rng.integers(0, 16, size=n).astype(np.float32)
         out = np.zeros(d, dtype=np.float32)
-        tu.matmul(out, x, W.reshape(-1), n, d)
+        tu.gemv(out, x, W.reshape(-1), n, d)
         np.testing.assert_array_equal(out, W @ x)
 
     def test_rejects_mismatched_buffers(self, tu):
@@ -265,4 +265,4 @@ class TestMatmul:
         out = np.zeros(8, dtype=np.float32)
         w = np.zeros(16, dtype=np.float32)
         with pytest.raises(ValueError, match="match"):
-            tu.matmul(out, x, w, 4, 8)
+            tu.gemv(out, x, w, 4, 8)

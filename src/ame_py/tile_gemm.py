@@ -180,10 +180,10 @@ class TileGEMM:
                 )
         return C
 
-    def matmul(
+    def gemv(
         self, xout: np.ndarray, x: np.ndarray, w: np.ndarray, n: int, d: int
     ) -> None:
-        """W (d, n) @ x (n,) -> xout (d,), the reference C `matmul` in spec form.
+        """xout (d,) = W (d, n) @ x (n,), the spec's C matmul as GEMV.
 
         Interior row tiles: the W square loads with mls.st (stride 4n) and x
         loads as a column-broadcast square with mls.tst stride 0, so every
@@ -245,13 +245,13 @@ def _demo() -> None:
     tu = TileGEMM()  # N = amenlen = 8
 
     print("=" * 62)
-    print("matmul: W @ x via mls.st / mls.tst(stride 0) / mconv / mmulacc")
+    print("gemv: W @ x via mls.st / mls.tst(stride 0) / mconv / mmulacc")
     print("=" * 62)
     for d, n in [(16, 16), (24, 40), (33, 13)]:
         W = rng.standard_normal((d, n)).astype(np.float32)
         x = rng.standard_normal(n).astype(np.float32)
         out = np.zeros(d, dtype=np.float32)
-        tu.matmul(out, x, W.reshape(-1), n, d)
+        tu.gemv(out, x, W.reshape(-1), n, d)
         ref = W.astype(np.float64) @ x.astype(np.float64)
         err = np.max(np.abs(out - ref))
         print(
